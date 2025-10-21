@@ -20,10 +20,10 @@ color_map2 = LinearSegmentedColormap.from_list("my_cmap", color2)
 color3 = [ "#e6ffff", "#ffffff", "#ffe6f2"  ]
 color_map3 = LinearSegmentedColormap.from_list("my_cmap", color3)
 
-#client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
+client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
 
-service_account_info = st.secrets["bigquery"]
-client = bigquery.Client.from_service_account_info(service_account_info)
+#service_account_info = st.secrets["bigquery"]
+#client = bigquery.Client.from_service_account_info(service_account_info)
 
 df = client.query("SELECT * FROM `pipeline-looker.pythonpl.sm` where Topic_Clean <> '-'").to_dataframe()
     
@@ -81,7 +81,7 @@ else:
 
 #---------------------------------------------------------------------------------
 
-df_displayfb = df_f.groupby(["index", "Topic", "Date", "Title"]).agg(**{
+df_displayfb = df_f.groupby(["Topic", "Date", "Title"], as_index=True).agg(**{
     "FB Followers": ("FB Followers", "sum"),
     "FB Views": ("FB Views", "sum"),
     "FB Reach": ("FB Reach", "sum"),
@@ -90,7 +90,7 @@ df_displayfb = df_f.groupby(["index", "Topic", "Date", "Title"]).agg(**{
     "FB Share": ("FB Share", "sum")
 })
 
-df_displayig = df_f.groupby(["index", "Topic", "Date", "Title"]).agg(**{
+df_displayig = df_f.groupby(["Topic", "Date", "Title"], as_index=True).agg(**{
     "IG Followers": ("IG Followers", "sum"),
     "IG Viewers": ("IG Viewers", "sum"),
     "IG Reach": ("IG Reach", "sum"),
@@ -100,7 +100,7 @@ df_displayig = df_f.groupby(["index", "Topic", "Date", "Title"]).agg(**{
     "IG Save": ("IG Save", "sum")
 })
 
-df_display2 = df_f.groupby("group", as_index=False).agg(**{
+df_display2 = df_f.groupby("group", as_index=True).agg(**{
     "FB Followers": ("FB Followers", "mean"),
     "FB Views": ("FB Views", "sum"),
     "FB Reach": ("FB Reach", "sum"),
@@ -110,7 +110,7 @@ df_display2 = df_f.groupby("group", as_index=False).agg(**{
 })
 
 
-df_display3 = df_f.groupby("group", as_index=False).agg(**{
+df_display3 = df_f.groupby("group", as_index=True).agg(**{
     "IG Followers": ("IG Followers", "mean"),
     "IG Viewers": ("IG Viewers", "sum"),
     "IG Reach": ("IG Reach", "sum"),
@@ -120,7 +120,7 @@ df_display3 = df_f.groupby("group", as_index=False).agg(**{
     "IG Save": ("IG Save", "sum")
 })
 
-df_display4 = df_f2.groupby("group", as_index=False).agg(**{
+df_display4 = df_f2.groupby("group", as_index=True).agg(**{
     "FB Followers": ("FB Followers", "mean"),
     "FB Views": ("FB Views", "sum"),
     "FB Reach": ("FB Reach", "sum"),
@@ -130,7 +130,7 @@ df_display4 = df_f2.groupby("group", as_index=False).agg(**{
 })
 
 
-df_display5 = df_f2.groupby("group", as_index=False).agg(**{
+df_display5 = df_f2.groupby("group", as_index=True).agg(**{
     "IG Followers": ("IG Followers", "mean"),
     "IG Viewers": ("IG Viewers", "sum"),
     "IG Reach": ("IG Reach", "sum"),
@@ -243,7 +243,7 @@ df_fb_comp["Topic"]=df_fb_comp["Topic"].str.replace("Topic_","")
 df_fb_comp["Topic"]=df_fb_comp["Topic"].str.title()
 df_fb_comp["Significant Previous"]= df_fb_comp["P-Value Previous"] < 0.05
 
-df_day_fb = pd.merge(df_fb, df_fb_comp, on="Topic", how="left")
+df_topic_fb = pd.merge(df_fb, df_fb_comp, on="Topic", how="left")
 
 #-ig---------------------------------------------------------
 
@@ -273,7 +273,10 @@ df_ig_comp["Topic"]=df_ig_comp["Topic"].str.replace("Topic_","")
 df_ig_comp["Topic"]=df_ig_comp["Topic"].str.title()
 df_ig_comp["Significant Previous"]= df_ig_comp["P-Value Previous"] < 0.05
 
-df_day_ig = pd.merge(df_ig, df_ig_comp, on="Topic", how="left")
+df_topic_ig = pd.merge(df_ig, df_ig_comp, on="Topic", how="left")
+
+df_topic_fb=df_topic_fb.set_index("Topic")
+df_topic_ig=df_topic_ig.set_index("Topic")
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
@@ -283,7 +286,7 @@ df_day_ig = pd.merge(df_ig, df_ig_comp, on="Topic", how="left")
 col1,col2 = st.columns(2)
 with col1:
     st.subheader("Facebook Significant Topic")
-    st.dataframe(df_day_fb.style.background_gradient(cmap=color_map1).format({
+    st.dataframe(df_topic_fb.style.background_gradient(cmap=color_map1).format({
         "T-test":"{:.3f}",
         "P-Value":"{:.3f}",
         "T-test Previous":"{:.3f}",
@@ -291,7 +294,7 @@ with col1:
     }))
 with col2:
     st.subheader("Instagram Significant Topic")
-    st.dataframe(df_day_ig.style.background_gradient(cmap=color_map2).format({
+    st.dataframe(df_topic_ig.style.background_gradient(cmap=color_map2).format({
         "T-test":"{:.3f}",
         "P-Value":"{:.3f}",
         "T-test Previous":"{:.3f}",
@@ -369,6 +372,8 @@ df_ig2_comp["Significant Previous"]= df_ig2_comp["P-Value Previous"] < 0.05
 
 df_day_ig = pd.merge(df_ig2, df_ig2_comp, on="Topic", how="left")
 
+df_day_fb=df_day_fb.set_index("Topic")
+df_day_ig=df_day_ig.set_index("Topic")
 #---------------------------------------------------------------------------------
 #place table
 
@@ -499,7 +504,7 @@ corr2_comp.rename(columns= {"day_Friday":"Friday",
 #corr_b_comp = corr2_comp[mask2]
 #df_corr = corr_a.merge(corr_b, on="index")
 #df_corr_comp = pd.concat([corr_a_comp, corr_b_comp[["Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]], axis=1)
-df_corr_comp = pd.concat([corr_comp, corr2_comp[["Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]], axis=1)
+#df_corr_comp = pd.concat([corr_comp, corr2_comp[["Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]], axis=1)
 
 #corr_a = corr_a_comp.drop("index", axis=1)
 #corr_a_comp = corr_a_comp.drop("index", axis=1)
