@@ -5,3 +5,4 @@ scipy
 matplotlib
 altair
 google-cloud-bigquery
+db-dtypes
