@@ -20,7 +20,7 @@ color_map2 = LinearSegmentedColormap.from_list("my_cmap", color2)
 color3 = [ "#e6ffff", "#ffffff", "#ffe6f2"  ]
 color_map3 = LinearSegmentedColormap.from_list("my_cmap", color3)
 
-client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
+#client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
 
 service_account_info = st.secrets["bigquery"]
 client = bigquery.Client.from_service_account_info(service_account_info)
