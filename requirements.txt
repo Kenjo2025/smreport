@@ -1,0 +1,7 @@
+streamlit
+pandas
+numpy
+scipy
+matplotlib
+altair
+google-cloud-bigquery
