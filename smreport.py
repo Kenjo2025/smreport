@@ -20,8 +20,10 @@ color_map2 = LinearSegmentedColormap.from_list("my_cmap", color2)
 color3 = [ "#e6ffff", "#ffffff", "#ffe6f2"  ]
 color_map3 = LinearSegmentedColormap.from_list("my_cmap", color3)
 
+#either have this (case = terminal. run by terminal)
 #client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
 
+#or this (case = deploy streamlitshare.io)
 service_account_info = st.secrets["bigquery"]
 client = bigquery.Client.from_service_account_info(service_account_info)
 
@@ -34,6 +36,7 @@ st.set_page_config(layout="wide")
 #df_combined.rename(columns= {"facebook reach":"FB Reach", "ig reach":"IG Reach"})
 
 df["index"] = range(1,len(df) +1)
+
 df.rename(columns= {"Date_Clean":"Date" , "Topic_Clean" : "Topic", "title":"Title"}, inplace=True)
 
 df["FB Followers"] = df["facebook_followers"].astype(float)
@@ -81,7 +84,7 @@ else:
 
 #---------------------------------------------------------------------------------
 
-df_displayfb = df_f.groupby(["Topic", "Date", "Title"], as_index=True).agg(**{
+df_displayfb = df_f.groupby(["Topic", "Date", "Title"], as_index=False).agg(**{
     "FB Followers": ("FB Followers", "sum"),
     "FB Views": ("FB Views", "sum"),
     "FB Reach": ("FB Reach", "sum"),
@@ -90,7 +93,7 @@ df_displayfb = df_f.groupby(["Topic", "Date", "Title"], as_index=True).agg(**{
     "FB Share": ("FB Share", "sum")
 })
 
-df_displayig = df_f.groupby(["Topic", "Date", "Title"], as_index=True).agg(**{
+df_displayig = df_f.groupby(["Topic", "Date", "Title"], as_index=False).agg(**{
     "IG Followers": ("IG Followers", "sum"),
     "IG Viewers": ("IG Viewers", "sum"),
     "IG Reach": ("IG Reach", "sum"),
@@ -143,14 +146,22 @@ df_display5 = df_f2.groupby("group", as_index=True).agg(**{
 df_displaya= pd.concat([df_display2, df_display4], axis=0)
 df_displayb= pd.concat([df_display3, df_display5], axis=0)
 
-df_displaya["group"] = range(1,len(df_displaya) +1)
-df_displayb["group"] = range(1,len(df_displayb) +1)
+#df_displaya["group"] = range(1,len(df_displaya) +1)
+#df_displayb["group"] = range(1,len(df_displayb) +1)
 
-df_displaya=df_displaya.set_index("group")
-df_displayb=df_displayb.set_index("group")
+#df_displaya=df_displaya.set_index("group")
+#df_displayb=df_displayb.set_index("group")
+
+df_displaya.index = ["Current", "Previous"]
+df_displayb.index = ["Current", "Previous"]
 
 #readjust date#-------------------------
-#df_displayfb["Date"]=pd.to_datetime(df_displayfb["Date"]).dt.strftime("%d %B %Y")
+
+df_displayfb["Date"]=pd.to_datetime(df_displayfb["Date"]).dt.strftime("%d %B %Y")
+df_displayfb=df_displayfb.set_index(["Date", "Topic", "Title"])
+
+df_displayig["Date"]=pd.to_datetime(df_displayig["Date"]).dt.strftime("%d %B %Y")
+df_displayig=df_displayig.set_index(["Date", "Topic", "Title"])
 
 #---------------------------------------
 
