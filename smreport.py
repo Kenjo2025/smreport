@@ -163,6 +163,11 @@ df_displayfb=df_displayfb.set_index(["Date", "Topic", "Title"])
 df_displayig["Date"]=pd.to_datetime(df_displayig["Date"]).dt.strftime("%d %B %Y")
 df_displayig=df_displayig.set_index(["Date", "Topic", "Title"])
 
+#-mengemaskan-kerja2--------------------------------------
+
+df_displayfb = df_displayfb.fillna(0)
+df_displayig = df_displayig.fillna(0)
+
 #---------------------------------------
 
 col1,col2 = st.columns(2)
@@ -290,7 +295,12 @@ df_topic_fb=df_topic_fb.set_index("Topic")
 df_topic_ig=df_topic_ig.set_index("Topic")
 
 #---------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------
+#-kemaskini-lagi------------------------------------------------------------------
+
+df_topic_fb = df_topic_fb.fillna(0)
+df_topic_ig = df_topic_ig.fillna(0)
+
+#--------------------------------------------------------------------------------
 
 #place table day significant
 
@@ -387,6 +397,11 @@ df_day_fb=df_day_fb.set_index("Topic")
 df_day_ig=df_day_ig.set_index("Topic")
 #---------------------------------------------------------------------------------
 #place table
+
+df_day_fb = df_day_fb.fillna(0)
+df_day_ig = df_day_ig.fillna(0)
+
+#-kemaskini-lagi-------------------------------------------------------------------
 
 col1,col2 = st.columns(2)
 with col1:
@@ -551,6 +566,11 @@ corr_b = corr_b.drop(["FB Reach", "IG Reach", "FB Reach Previous", "IG Reach Pre
 #st.subheader(f"Corellation from {prev_start.strftime("%#d %B %Y")} to {prev_end.strftime("%#d %B %Y")}")
 #st.dataframe(corr2.style.background_gradient(cmap=color_map3))
 #st.dataframe(corr2_comp.style.background_gradient(cmap=color_map3))
+
+#---------------------------------------------------------------------
+
+corr_a = corr_a.fillna(0)
+corr_b = corr_b.fillna(0)
 
 st.subheader(f"Corellation: {start_date.strftime("%#d %B %Y")} to {end_date.strftime("%#d %B %Y")} vs {prev_start.strftime("%#d %B %Y")} to {prev_end.strftime("%#d %B %Y")}")
 
@@ -744,8 +764,8 @@ chart1 = (
     .mark_line(interpolate='monotone', color="#0072B2", strokeWidth=2)
     .encode(
         x=alt.X("Date:T", title="Date"),
-        y=alt.Y("Followers:Q", title="Average Followers"),
-        tooltip=["Date", "Followers"]
+        y=alt.Y("Reach:Q", title="Average Reach"),
+        tooltip=["Date", "Reach"]
     )
     .properties(title="Current Period")
 )
@@ -755,7 +775,7 @@ chart2 = (
     .mark_line(interpolate='monotone', color="#E69F00", strokeDash=[5, 5], strokeWidth=2, opacity=0.8)
     .encode(
         x="Date:T",
-        y="Followers:Q",
+        y="Reach:Q",
         tooltip=["Date", "Followers"]
     )
     .properties(title="Previous Period (Shifted & Aligned)")
@@ -764,7 +784,7 @@ chart2 = (
 chart = alt.layer(chart1, chart2).properties(
     width=700,
     height=400,
-    title="Reach Comparison: Current vs Previous Period (Overlayed)"
+    title="Facebook Reach Comparison: Current vs Previous Period (Overlayed)"
 ).interactive()
 
 st.altair_chart(chart, use_container_width=True)
@@ -796,8 +816,8 @@ chart3 = (
     .mark_line(interpolate='monotone', color="#0072B2", strokeWidth=2)
     .encode(
         x=alt.X("Date:T", title="Date"),
-        y=alt.Y("Followers:Q", title="Average Followers"),
-        tooltip=["Date", "Followers"]
+        y=alt.Y("Reach:Q", title="Average Followers"),
+        tooltip=["Date", "Reach"]
     )
     .properties(title="Current Period")
 )
@@ -806,9 +826,8 @@ chart4 = (
     alt.Chart(df_followers4_aligned)
     .mark_line(interpolate='monotone', color="#E69F00", strokeDash=[5, 5], strokeWidth=2, opacity=0.8)
     .encode(
-        x="Date:T",
-        y="Followers:Q",
-        tooltip=["Date", "Followers"]
+        x="Date:T",y="Reach:Q",
+        tooltip=["Date", "Reach"]
     )
     .properties(title="Previous Period (Shifted & Aligned)")
 )
@@ -816,7 +835,134 @@ chart4 = (
 charts = alt.layer(chart3, chart4).properties(
     width=700,
     height=400,
-    title="Reach Comparison: Current vs Previous Period (Overlayed)"
+    title="Instagram Reach Comparison: Current vs Previous Period (Overlayed)"
 ).interactive()
 
 st.altair_chart(charts, use_container_width=True)
+
+#--THIS-IS-VOLTALITY-TABLE--------------------------------------------------------------
+
+topic_select2 = df_f["Topic"].unique()
+topic_selected2 = st.multiselect("Please select topic", topic_select2, default=topic_select2)
+
+df_liv = df_f[df_f["Topic"].isin(topic_selected2)]
+
+df_izzo = df_liv.groupby("Date", as_index=False).agg(**{
+    "Follower FB" : ("FB Followers", "mean"),
+    "Delta FB" : ("FB Reach", "mean"),
+    "Follower IG" : ("IG Followers", "mean"),
+    "Delta IG" : ("IG Reach", "mean"),
+    "Reach FB" : ("FB Reach", "mean"),
+    "Delta2 FB" : ("FB Reach", "mean"),
+    "Reach IG" : ("IG Reach", "mean"),
+    "Delta2 IG" : ("IG Reach", "mean"),
+    #--
+    "Views FB" : ("FB Views", "mean"),
+    "Delta3 FB" : ("FB Reach", "mean"),
+    "Views IG" : ("IG Viewers", "mean"),
+    "Delta3 IG" : ("IG Reach", "mean")
+})
+
+prev_time = start_date - pd.Timedelta(days=1)
+prev_endtime = prev_time + x
+mask5 = (df["Date"] >= prev_time) & (df["Date"] <= prev_endtime)
+
+df_razzi = df_liv[mask5].groupby("Date", as_index=False).agg(**{
+    "Follower FB -1" : ("FB Followers", "mean"),
+    "Delta FB -1" : ("FB Reach", "mean"),
+    "Follower IG -1" : ("IG Followers", "mean"),
+    "Delta IG -1" : ("IG Reach", "mean"),
+    "Reach FB -1" : ("FB Reach", "mean"),
+    "Delta2 FB -1" : ("FB Reach", "mean"),
+    "Reach IG -1" : ("IG Reach", "mean"),
+    "Delta2 IG -1" : ("IG Reach", "mean"),
+    #--
+    "Views FB -1" : ("FB Views", "mean"),
+    "Delta3 FB -1" : ("FB Reach", "mean"),
+    "Views IG -1" : ("IG Viewers", "mean"),
+    "Delta3 IG -1" : ("IG Reach", "mean")
+})
+
+df_razzicopy = df_razzi.copy()
+df_razzicopy["Date"] = pd.to_datetime(df_razzi["Date"]) - pd.Timedelta(days=1)
+
+df_ragazzi = pd.merge(df_izzo, df_razzicopy
+    [["Date", "Follower FB -1", "Delta FB -1", "Follower IG -1", "Delta IG -1",
+     "Reach FB -1", "Reach IG -1", "Delta2 FB -1", "Delta2 IG -1",
+     "Views FB -1", "Delta3 FB -1", "Views IG -1", "Delta3 IG -1"]], on="Date", how="left")
+
+df_ragazzi["Delta FB"] = np.where(
+    df_ragazzi["Follower FB -1"] > 0,
+    ((df_ragazzi["Follower FB"] - df_ragazzi["Follower FB -1"]) / df_ragazzi["Follower FB -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi["Delta IG"] = np.where(
+    df_ragazzi["Follower IG -1"] > 0,
+    ((df_ragazzi["Follower IG"] - df_ragazzi["Follower IG -1"]) / df_ragazzi["Follower IG -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi["Delta2 FB"] = np.where(
+    df_ragazzi["Reach FB -1"] > 0,
+    ((df_ragazzi["Reach FB"] - df_ragazzi["Reach FB -1"]) / df_ragazzi["Reach FB -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi["Delta2 IG"] = np.where(
+    df_ragazzi["Reach IG -1"] > 0,
+    ((df_ragazzi["Reach IG"] - df_ragazzi["Reach IG -1"]) / df_ragazzi["Reach IG -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi["Delta3 FB"] = np.where(
+    df_ragazzi["Views FB -1"] > 0,
+    ((df_ragazzi["Views FB"] - df_ragazzi["Views FB -1"]) / df_ragazzi["Views FB -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi["Delta3 IG"] = np.where(
+    df_ragazzi["Views IG -1"] > 0,
+    ((df_ragazzi["Views IG"] - df_ragazzi["Views IG -1"]) / df_ragazzi["Views IG -1"]) * 100,
+    np.nan
+)
+
+df_ragazzi = df_ragazzi.drop(["Follower FB -1", "Delta FB -1", "Follower IG -1", "Delta IG -1", 
+                             "Reach FB -1", "Reach IG -1", "Delta2 FB -1", "Delta2 IG -1",
+                             "Views FB -1", "Delta3 FB -1", "Views IG -1", "Delta3 IG -1"], axis=1)
+df_ragazzi["Date"] = pd.to_datetime(df_ragazzi["Date"]).dt.strftime("%d %B %Y")
+
+df_ragazzi = df_ragazzi.set_index("Date")
+
+#df_izzo["Delta FB"]=df_izzo[""]
+#df_izzo["Delta IG"]
+
+#df_combined_compare = pd.concat([df_topic_compare, df_f2[[
+#   "FB Reach", "IG Reach"
+#]].astype(float)], axis=1)
+
+df_ragazzi = df_ragazzi.rename(columns={"Delta FB": "Follower FB Δ %", "Delta IG" : "Follower IG Δ %",
+                                       "Delta2 FB": "Reach FB Δ %", "Delta2 IG" : "Reach IG Δ %",
+                                       "Delta3 FB": "Views FB Δ %", "Delta3 IG" : "Views IG Δ %"})
+
+df_ragazzi = df_ragazzi.fillna(0)
+
+st.dataframe(
+    df_ragazzi.style
+        .background_gradient(cmap=color_map1, subset=[c for c in df_ragazzi.columns if "FB Δ %" in c])
+        .background_gradient(cmap=color_map2, subset=[c for c in df_ragazzi.columns if "IG Δ %" in c])
+        .format({
+            "Follower FB": "{:,.0f}",
+            "Follower FB Δ %" : "{:,.2f}%",
+            "Follower IG": "{:,.0f}",
+            "Follower IG Δ %" : "{:,.2f}%",
+            "Reach FB" : "{:,.0f}",
+            "Reach FB Δ %" : "{:,.2f}%",
+            "Reach IG" : "{:,.0f}",
+            "Reach IG Δ %" : "{:,.2f}%",
+            "Views FB" : "{:,.0f}",
+            "Views FB Δ %" : "{:,.2f}%",
+            "Views IG" : "{:,.0f}",
+            "Views IG Δ %" : "{:,.2f}%"
+        })
+)
