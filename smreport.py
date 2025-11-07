@@ -21,13 +21,13 @@ color3 = [ "#e6ffff", "#ffffff", "#ffe6f2"  ]
 color_map3 = LinearSegmentedColormap.from_list("my_cmap", color3)
 
 #either have this (case = terminal. run by terminal)
-#client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
+client = bigquery.Client.from_service_account_json("pipeline-looker-3ccfc32b2780.json")
 
 #or this (case = deploy streamlitshare.io)
-service_account_info = st.secrets["bigquery"]
-client = bigquery.Client.from_service_account_info(service_account_info)
+#service_account_info = st.secrets["bigquery"]
+#client = bigquery.Client.from_service_account_info(service_account_info)
 
-df = client.query("SELECT * FROM `pipeline-looker.pythonpl.sm` where Topic_Clean <> '-'").to_dataframe()
+df = client.query("SELECT * FROM `pipeline-looker.Streamlit_table.sm`").to_dataframe()
     
 st.set_page_config(layout="wide")
 
