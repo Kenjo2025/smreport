@@ -53,7 +53,7 @@ df["IG Comments"] = df["ig_comments"].astype(float)
 df["IG Share"] = df["ig_share"].astype(float)
 df["IG Save"] = df["ig_save"].astype(float)
 
-df["Date"] = pd.to_datetime(df["Date"])
+df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
 df["group"] = "sm"
 df.rename(columns= {"facebook reach":"FB Reach", "ig reach":"IG Reach"})
 
