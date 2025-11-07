@@ -53,7 +53,7 @@ df["IG Comments"] = df["ig_comments"].astype(float)
 df["IG Share"] = df["ig_share"].astype(float)
 df["IG Save"] = df["ig_save"].astype(float)
 
-df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+df["Date"] = pd.to_datetime(df["Date"])
 df["group"] = "sm"
 df.rename(columns= {"facebook reach":"FB Reach", "ig reach":"IG Reach"})
 
@@ -751,8 +751,8 @@ df_followers2 = df_f2.groupby("Date", as_index = False).agg(**{
     "Views" : ("FB Views", "mean")
 })
 
-df_followers1["Date"]= pd.to_datetime(df_followers1["Date"], dayfirst=True)
-df_followers2["Date"]= pd.to_datetime(df_followers2["Date"], dayfirst=True)
+df_followers1["Date"]= pd.to_datetime(df_followers1["Date"],)
+df_followers2["Date"]= pd.to_datetime(df_followers2["Date"],)
 
 period_length = (end_date - start_date).days
 
@@ -803,8 +803,8 @@ df_followers4 = df_f2.groupby("Date", as_index = False).agg(**{
     "Views" : ("IG Viewers", "mean")
 })
 
-df_followers3["Date"]= pd.to_datetime(df_followers1["Date"], dayfirst=True)
-df_followers4["Date"]= pd.to_datetime(df_followers2["Date"], dayfirst=True)
+df_followers3["Date"]= pd.to_datetime(df_followers1["Date"])
+df_followers4["Date"]= pd.to_datetime(df_followers2["Date"])
 
 period_length = (end_date - start_date).days
 
