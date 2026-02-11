@@ -1,2 +1,2 @@
 # smreport
-this is report for social media
+personal project
